@@ -305,7 +305,7 @@ const LandingPage = () => {
   if (meetingJoined) {
     return <MeetingInterface/>;
   }
-  if (isLoggedIn) { 
+  if (isLoggedIn) {
     return <Dashboard />;
   }
 
