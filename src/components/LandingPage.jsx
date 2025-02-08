@@ -12,6 +12,7 @@ import {
   ChartBar,
   SignOut,
 } from "@phosphor-icons/react";
+import MeetingInterface from "./MeetingInterface";
 
 
 const LandingPage = () => {
@@ -19,6 +20,8 @@ const LandingPage = () => {
   const [activeTab, setActiveTab] = useState("join");
   const [meetingLink, setMeetingLink] = useState("");
   const [selectedMeetingId, setSelectedMeetingId] = useState(null);
+  const [meetingJoined, setMeetingJoined] = useState(false);
+
 
   const platforms = [
     {
@@ -275,7 +278,8 @@ const LandingPage = () => {
                 placeholder="Paste your meeting link"
                 className="w-800 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-              <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700" onClick={()=>{
+                setMeetingJoined(true); }}>
                 Join
               </button>
               <div className="flex flex-wrap gap-4">
@@ -298,10 +302,14 @@ const LandingPage = () => {
       </main>
     </div>
   );
-
-  if (isLoggedIn) {
+  if (meetingJoined) {
+    return <MeetingInterface/>;
+  }
+  if (isLoggedIn) { 
     return <Dashboard />;
   }
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -379,5 +387,7 @@ const LandingPage = () => {
     </div>
   );
 };
+
+
 
 export default LandingPage;
