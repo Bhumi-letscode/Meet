@@ -11,16 +11,17 @@ import {
   Globe,
   ChartBar,
   SignOut,
+  ArrowLeft,
 } from "@phosphor-icons/react";
 import MeetingInterface from "./MeetingInterface";
-
 
 const LandingPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeTab, setActiveTab] = useState("join");
   const [meetingLink, setMeetingLink] = useState("");
-  const [selectedMeetingId, setSelectedMeetingId] = useState(null);
   const [meetingJoined, setMeetingJoined] = useState(false);
+  const [viewMode, setViewMode] = useState("list"); // "list" or "summary"
+  const [selectedMeeting, setSelectedMeeting] = useState(null);
 
 
   const platforms = [
@@ -138,6 +139,113 @@ const LandingPage = () => {
     },
   };
 
+  const SummaryView = ({ meeting, onBack }) => (
+    <div className="space-y-6 animate-fadeIn">
+      <button
+        onClick={onBack}
+        className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+      >
+        <ArrowLeft size={20} className="mr-2" />
+        Back to Meetings
+      </button>
+
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="border-b pb-4 mb-6">
+          <h2 className="text-2xl font-semibold">{meeting.title}</h2>
+          <div className="flex items-center space-x-4 mt-2 text-gray-600">
+            <span>{meeting.date}</span>
+            <span>•</span>
+            <span>{meeting.duration}</span>
+            <span>•</span>
+            <span>{meeting.attendees} attendees</span>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Meeting Overview</h3>
+            <p className="text-gray-600 leading-relaxed">
+              {meetingSummaries[meeting.id].summary}
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Action Items</h3>
+            <div className="space-y-3">
+              {meetingSummaries[meeting.id].action_items.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-start bg-blue-50 p-4 rounded-lg"
+                >
+                  <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3">
+                    {index + 1}
+                  </div>
+                  <p className="text-gray-800">{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t pt-6 mt-6">
+            <h3 className="text-lg font-semibold mb-3">Next Steps</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <button className="flex items-center justify-center space-x-2 p-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <ChatCircleText size={20} />
+                <span>Share with Team</span>
+              </button>
+              <button className="flex items-center justify-center space-x-2 p-4 border border-gray-300 rounded-lg hover:bg-gray-50">
+                <ChartBar size={20} />
+                <span>Export Summary</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const AnalyticsTab = () => (
+    <div className="space-y-6">
+      {viewMode === "list" ? (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold mb-4">Recent Meetings</h3>
+          <div className="space-y-4">
+            {recentMeetings.map((meeting) => (
+              <div key={meeting.id}>
+                <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                  <div>
+                    <h4 className="font-medium">{meeting.title}</h4>
+                    <p className="text-sm text-gray-500">
+                      {meeting.date} • {meeting.duration} • {meeting.attendees}{" "}
+                      attendees
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedMeeting(meeting);
+                      setViewMode("summary");
+                    }}
+                    className="px-4 py-2 text-sm text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50"
+                  >
+                    View Summary
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <SummaryView
+          meeting={selectedMeeting}
+          onBack={() => {
+            setViewMode("list");
+            setSelectedMeeting(null);
+          }}
+        />
+      )}
+    </div>
+  );
+
   const IntegrationsTab = () => (
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow p-6">
@@ -175,56 +283,7 @@ const LandingPage = () => {
     </div>
   );
 
-  const AnalyticsTab = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Recent Meetings</h3>
-        <div className="space-y-4">
-          {recentMeetings.map((meeting) => (
-            <div key={meeting.id}>
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h4 className="font-medium">{meeting.title}</h4>
-                  <p className="text-sm text-gray-500">
-                    {meeting.date} • {meeting.duration} • {meeting.attendees}{" "}
-                    attendees
-                  </p>
-                </div>
-                <button
-                  onClick={() =>
-                    setSelectedMeetingId(
-                      selectedMeetingId === meeting.id ? null : meeting.id
-                    )
-                  }
-                  className="px-4 py-2 text-sm text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50"
-                >
-                  {selectedMeetingId === meeting.id
-                    ? "Hide Summary"
-                    : "View Summary"}
-                </button>
-              </div>
-              {selectedMeetingId === meeting.id && (
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <h5 className="font-medium mb-2">Meeting Summary</h5>
-                  <p className="text-gray-600 mb-4">
-                    {meetingSummaries[meeting.id].summary}
-                  </p>
-                  <h5 className="font-medium mb-2">Action Items</h5>
-                  <ul className="list-disc list-inside text-gray-600">
-                    {meetingSummaries[meeting.id].action_items.map(
-                      (item, index) => (
-                        <li key={index}>{item}</li>
-                      )
-                    )}
-                  </ul>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  
 
   const Dashboard = () => (
     <div className="min-h-screen bg-gray-50">
@@ -253,7 +312,11 @@ const LandingPage = () => {
               {["join", "integrations", "analytics"].map((tab) => (
                 <button
                   key={tab}
-                  onClick={() => setActiveTab(tab)}
+                  onClick={() => {
+                    setActiveTab(tab);
+                    setViewMode("list");
+                    setSelectedMeeting(null);
+                  }}
                   className={`${
                     activeTab === tab
                       ? "border-blue-500 text-blue-600"
@@ -266,6 +329,7 @@ const LandingPage = () => {
             </nav>
           </div>
         </div>
+
 
         {activeTab === "join" && (
           <div className="bg-white rounded-lg shadow p-6">
